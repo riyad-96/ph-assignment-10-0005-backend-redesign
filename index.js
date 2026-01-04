@@ -4,8 +4,8 @@ const express = require('express');
 const cors = require('cors');
 
 // Local modules
-const indexRouter = require('./routes/indexRoutes');
-const { establishDBConnection } = require('./db/establishConnection');
+const indexRouter = require('./src/routes/indexRoutes');
+const { establishDBConnection } = require('./src/db/establishConnection');
 
 const app = express();
 
@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(indexRouter);
 
 // database connection
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 establishDBConnection((err) => {
   if (err) return console.error(err);
