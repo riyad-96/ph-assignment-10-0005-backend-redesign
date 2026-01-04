@@ -9,14 +9,22 @@ async function sendPartnerRequest(req, res) {
 
     // check if request already exists
     const requestsCollection = getDB().collection('partner-requests');
-    const previousRequest = await requestsCollection.findOne({ requestBy: email, originalId: toId });
+    const previousRequest = await requestsCollection.findOne({
+      requestBy: email,
+      originalId: new ObjectId(toId),
+    });
+
     if (previousRequest) {
       return res.status(409).send({ message: 'request-already-exists' });
     }
 
     // increase partner count by 1
     const basepartnersColl = getDB().collection('basepartners');
-    const partnerProfile = await basepartnersColl.findOneAndUpdate({ _id: new ObjectId(toId) }, { $inc: { partnerCount: 1 } }, { returnDocument: 'after' });
+    const partnerProfile = await basepartnersColl.findOneAndUpdate(
+      { _id: new ObjectId(toId) },
+      { $inc: { partnerCount: 1 } },
+      { returnDocument: 'after' }
+    );
 
     // create new doc in different collection with updated partner profile
     const { _id, ...rest } = partnerProfile;
@@ -45,30 +53,21 @@ async function sendPartnerRequest(req, res) {
         createdAt: newDate,
         updatedAt: newDate,
       });
-      const newlyCreatedUser = await usersCollection.findOneAndUpdate({ email }, { $inc: { partnerCount: 1 } }, { returnDocument: 'after' });
+      const newlyCreatedUser = await usersCollection.findOneAndUpdate(
+        { email },
+        { $inc: { partnerCount: 1 } },
+        { returnDocument: 'after' }
+      );
       res.send({ message: 'partner-request-sent', userProfile: newlyCreatedUser, code: 'created' });
       return;
     }
 
-    const updatedUserProfile = await usersCollection.findOneAndUpdate({ email }, { $inc: { partnerCount: 1 } }, { returnDocument: 'after' });
+    const updatedUserProfile = await usersCollection.findOneAndUpdate(
+      { email },
+      { $inc: { partnerCount: 1 } },
+      { returnDocument: 'after' }
+    );
     res.send({ message: 'partner-request-sent', userProfile: updatedUserProfile });
-  } catch (err) {
-    console.log(err);
-    res.status(500).send({ message: 'server-error' });
-  }
-}
-
-async function checkPartnerRequest(req, res) {
-  try {
-    const email = res.locals.userInfo.email;
-    const partnerId = req.body.partnerId;
-    const requestsCollection = getDB().collection('partner-requests');
-    const exists = await requestsCollection.findOne({ requestBy: email, originalId: new ObjectId(partnerId) });
-    if (exists) {
-      res.send({ message: 'request-already-exists' });
-    } else {
-      res.send({ message: 'request-not-found' });
-    }
   } catch (err) {
     console.error(err);
     res.status(500).send({ message: 'server-error' });
@@ -93,7 +92,10 @@ async function removeConnection(req, res) {
     const basepartnersCollection = getDB().collection('basepartners');
     const requestsCollection = getDB().collection('partner-requests');
 
-    await basepartnersCollection.findOneAndUpdate({ _id: new ObjectId(originalId) }, { $inc: { partnerCount: -1 } });
+    await basepartnersCollection.findOneAndUpdate(
+      { _id: new ObjectId(originalId) },
+      { $inc: { partnerCount: -1 } }
+    );
     await requestsCollection.deleteOne({ _id: new ObjectId(_id), requestBy: email });
     await getDB()
       .collection('users')
@@ -110,11 +112,20 @@ async function updatePartnerProfile(req, res) {
 
     const { info, _id } = req.body;
     const requestsCollection = getDB().collection('partner-requests');
-    const updatedProfileInfo = await requestsCollection.findOneAndUpdate({ _id: new ObjectId(_id), requestBy }, { $set: info }, { returnDocument: 'after' });
+    const updatedProfileInfo = await requestsCollection.findOneAndUpdate(
+      { _id: new ObjectId(_id), requestBy },
+      { $set: info },
+      { returnDocument: 'after' }
+    );
     res.send(updatedProfileInfo);
   } catch (err) {
     res.status(500).send({ message: 'server-error' });
   }
 }
 
-module.exports = { sendPartnerRequest, checkPartnerRequest, allRequests, removeConnection, updatePartnerProfile };
+module.exports = {
+  sendPartnerRequest,
+  allRequests,
+  removeConnection,
+  updatePartnerProfile,
+};

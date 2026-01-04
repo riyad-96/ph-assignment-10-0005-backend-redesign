@@ -87,7 +87,7 @@ async function updateUserProfileData(req, res) {
     );
     res.send({ message: 'profile-updated', userProfile: updatedInfo });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).send({ message: 'server-error' });
   }
 }
