@@ -10,7 +10,7 @@ const managePartnerRequestRouter = require('./managePartnerRequestRoutes');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  res.send('Server for ph-assignment-10-0005');
+  res.send('Server studymate redesigned');
 });
 
 router.use('/base-partner', basePartnerRouter);
